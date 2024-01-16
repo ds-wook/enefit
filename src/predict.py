@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 
 import hydra
@@ -9,15 +8,7 @@ from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from omegaconf import DictConfig
 
-try:
-    import enefit
-
-    print("Using local enefit")
-except ModuleNotFoundError:
-    sys.path.append("/kaggle/input/predict-energy-behavior-of-prosumers/enefit/")
-    print("Using kaggle enefit")
-    import enefit
-
+import enefit
 from data import Warehouse
 from features import FeatureEngineer
 
