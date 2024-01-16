@@ -30,7 +30,7 @@ def _main(cfg: DictConfig):
         df_train = df_train.drop(columns=["literal"]) if "literal" in df_train.columns else df_train
 
         # Train model
-        m1 = VotingRegressor(
+        model_consumption = VotingRegressor(
             [
                 (
                     f"clgb_{i}",
@@ -41,7 +41,7 @@ def _main(cfg: DictConfig):
             verbose=True,
         )
 
-        m2 = VotingRegressor(
+        model_production = VotingRegressor(
             [
                 (
                     f"plgb_{i}",
@@ -52,7 +52,7 @@ def _main(cfg: DictConfig):
             verbose=True,
         )
 
-        m1, m2 = fit_model(df_train, 48, m1, m2)
+        m1, m2 = fit_model(df_train, 48, model_consumption, model_production)
 
         joblib.dump(m1, Path(cfg.models.path) / "model_consumption.pkl")
         joblib.dump(m2, Path(cfg.models.path) / "model_production.pkl")

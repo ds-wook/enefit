@@ -3,11 +3,20 @@ from pathlib import Path
 import hydra
 import joblib
 import numpy as np
+import pandas as pd
 from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from omegaconf import DictConfig
 
-import enefit
+try:
+    import enefit
+
+except ImportError:
+    import sys
+
+    sys.path.append("/kaggle/input/predict-energy-behavior-of-prosumers/")
+    import enefit
+
 from data import Warehouse
 from features import FeatureEngineer
 
@@ -16,7 +25,9 @@ iter_test = env.iter_test()
 Model = list[LGBMRegressor | CatBoostRegressor]
 
 
-def predict_model(df_features, hours_lag, model_consumption: Model, model_production: Model) -> np.ndarray:
+def predict_model(
+    df_features: pd.DataFrame, hours_lag: int, model_consumption: Model, model_production: Model
+) -> np.ndarray:
     predictions = np.zeros(len(df_features))
 
     mask = df_features["is_consumption"] == 1

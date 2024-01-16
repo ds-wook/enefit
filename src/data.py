@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore")
 
 
 class Warehouse:
-    root = "input/"
+    root = "input/predict-energy-behavior-of-prosumers/"
 
     data_columns = [
         "target",

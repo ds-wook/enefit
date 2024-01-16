@@ -1,3 +1,5 @@
+root: input/predict-energy-behavior-of-prosumers/
+
 defaults:
   - _self_
   - models: lightgbm
