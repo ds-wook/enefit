@@ -11,7 +11,7 @@ from omegaconf import DictConfig
 try:
     import enefit
 
-except ImportError:
+except ModuleNotFoundError:
     import sys
 
     sys.path.append("/kaggle/input/predict-energy-behavior-of-prosumers/")
