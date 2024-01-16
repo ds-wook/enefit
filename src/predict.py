@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import hydra
@@ -11,10 +12,10 @@ from omegaconf import DictConfig
 try:
     import enefit
 
+    print("Using local enefit")
 except ModuleNotFoundError:
-    import sys
-
-    sys.path.append("/kaggle/input/predict-energy-behavior-of-prosumers/")
+    sys.path.append("/kaggle/input/predict-energy-behavior-of-prosumers/enefit/")
+    print("Using kaggle enefit")
     import enefit
 
 from data import Warehouse
