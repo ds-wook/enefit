@@ -8,9 +8,14 @@ from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from omegaconf import DictConfig
 
-import enefit
 from data import Warehouse
 from features import FeatureEngineer
+
+try:
+    import enefit
+
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("Please install enefit package from")
 
 env = enefit.make_env()
 iter_test = env.iter_test()
@@ -53,6 +58,7 @@ def _main(cfg: DictConfig):
     ) in iter_test:
         store = Warehouse()
         feat_gen = FeatureEngineer(data=store)
+
         store.update_data(
             df_client_new=df_new_client,
             df_gas_price_new=df_new_gas_prices,

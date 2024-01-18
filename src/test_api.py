@@ -1,5 +1,5 @@
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 try:
     import enefit
@@ -13,6 +13,7 @@ except ModuleNotFoundError:
 
 @hydra.main(config_path="../config/", config_name="predict")
 def _main(cfg: DictConfig):
+    print(OmegaConf.to_yaml(cfg))
     counter = 0
     for (
         test,
@@ -33,6 +34,7 @@ def _main(cfg: DictConfig):
             print(electricity_prices.head(3))
             print(gas_prices.head(3))
             print(sample_prediction.head(3))
+
         sample_prediction["target"] = 0
         env.predict(sample_prediction)
         counter += 1

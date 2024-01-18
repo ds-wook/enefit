@@ -3,82 +3,15 @@ import warnings
 
 import pandas as pd
 import polars as pl
+from omegaconf import DictConfig
 
 warnings.filterwarnings("ignore")
 
 
 class Warehouse:
-    root = "/kaggle/input/predict-energy-behavior-of-prosumers/"
-
-    data_columns = [
-        "target",
-        "county",
-        "is_business",
-        "product_type",
-        "is_consumption",
-        "datetime",
-        "row_id",
-    ]
-    client_columns = [
-        "product_type",
-        "county",
-        "eic_count",
-        "installed_capacity",
-        "is_business",
-        "date",
-    ]
-    gas_prices_columns = ["forecast_date", "lowest_price_per_mwh", "highest_price_per_mwh"]
-    electricity_prices_columns = ["forecast_date", "euros_per_mwh"]
-    forecast_weather_columns = [
-        "latitude",
-        "longitude",
-        "hours_ahead",
-        "temperature",
-        "dewpoint",
-        "cloudcover_high",
-        "cloudcover_low",
-        "cloudcover_mid",
-        "cloudcover_total",
-        "10_metre_u_wind_component",
-        "10_metre_v_wind_component",
-        "forecast_datetime",
-        "direct_solar_radiation",
-        "surface_solar_radiation_downwards",
-        "snowfall",
-        "total_precipitation",
-    ]
-    historical_weather_columns = [
-        "datetime",
-        "temperature",
-        "dewpoint",
-        "rain",
-        "snowfall",
-        "surface_pressure",
-        "cloudcover_total",
-        "cloudcover_low",
-        "cloudcover_mid",
-        "cloudcover_high",
-        "windspeed_10m",
-        "winddirection_10m",
-        "shortwave_radiation",
-        "direct_solar_radiation",
-        "diffuse_radiation",
-        "latitude",
-        "longitude",
-    ]
-    location_columns = ["longitude", "latitude", "county"]
-    target_columns = [
-        "target",
-        "county",
-        "is_business",
-        "product_type",
-        "is_consumption",
-        "datetime",
-    ]
-
-    def __init__(self):
+    def __init__(self, cfg: DictConfig):
         self.df_data = pl.read_csv(
-            os.path.join(self.root, "train.csv"),
+            os.path.join(self.cfg.root, "train.csv"),
             columns=self.data_columns,
             try_parse_dates=True,
         )
