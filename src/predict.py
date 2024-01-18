@@ -8,8 +8,7 @@ from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from omegaconf import DictConfig
 
-from data import Warehouse
-from features import FeatureEngineer
+from train import feat_gen, store
 
 try:
     import enefit
@@ -56,9 +55,6 @@ def _main(cfg: DictConfig):
         df_new_gas_prices,
         df_sample_prediction,
     ) in iter_test:
-        store = Warehouse()
-        feat_gen = FeatureEngineer(data=store)
-
         store.update_data(
             df_client_new=df_new_client,
             df_gas_price_new=df_new_gas_prices,
