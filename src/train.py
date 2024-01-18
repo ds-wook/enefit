@@ -13,15 +13,16 @@ from data import Warehouse
 from features import FeatureEngineer
 from model import fit_model
 
+# Load data
+store = Warehouse()
+feat_gen = FeatureEngineer(data=store)
+
 
 @hydra.main(config_path="../config/", config_name="train")
 def _main(cfg: DictConfig):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
 
-        # Load data
-        store = Warehouse(cfg)
-        feat_gen = FeatureEngineer(data=store)
         df_train = feat_gen.generate_features(store.df_data, True)
         df_train = df_train[df_train["target"].notnull()]
 
