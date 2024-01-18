@@ -20,7 +20,7 @@ def _main(cfg: DictConfig):
         warnings.filterwarnings("ignore", category=UserWarning)
 
         # Load data
-        store = Warehouse()
+        store = Warehouse(cfg)
         feat_gen = FeatureEngineer(data=store)
         df_train = feat_gen.generate_features(store.df_data, True)
         df_train = df_train[df_train["target"].notnull()]
