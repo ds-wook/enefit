@@ -10,29 +10,19 @@ warnings.filterwarnings("ignore")
 
 class DataStorage:
     def __init__(self, cfg: DictConfig):
-        self.df_data = pl.read_csv(
-            Path(cfg.data.root) / "train.csv",
-            columns=cfg.data.data_cols,
-            try_parse_dates=True,
-        )
+        self.df_data = pl.read_csv(Path(cfg.data.root) / "train.csv", columns=cfg.data.data_cols, try_parse_dates=True)
         self.df_client = pl.read_csv(
-            Path(cfg.data.root) / "client.csv",
-            columns=cfg.data.client_cols,
-            try_parse_dates=True,
+            Path(cfg.data.root) / "client.csv", columns=cfg.data.client_cols, try_parse_dates=True
         )
         self.df_gas_prices = pl.read_csv(
-            Path(cfg.data.root) / "gas_prices.csv",
-            columns=cfg.data.gas_prices_cols,
-            try_parse_dates=True,
+            Path(cfg.data.root) / "gas_prices.csv", columns=cfg.data.gas_prices_cols, try_parse_dates=True
+        )
+        self.df_forecast_weather = pl.read_csv(
+            Path(cfg.data.root) / "forecast_weather.csv", columns=cfg.data.forecast_weather_cols, try_parse_dates=True
         )
         self.df_electricity_prices = pl.read_csv(
             Path(cfg.data.root) / "electricity_prices.csv",
             columns=cfg.data.electricity_prices_cols,
-            try_parse_dates=True,
-        )
-        self.df_forecast_weather = pl.read_csv(
-            Path(cfg.data.root) / "forecast_weather.csv",
-            columns=cfg.data.forecast_weather_cols,
             try_parse_dates=True,
         )
         self.df_historical_weather = pl.read_csv(
