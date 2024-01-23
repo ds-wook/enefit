@@ -20,7 +20,7 @@ except ModuleNotFoundError:
 
 
 class GPUVoting:
-    def __init__(self, vr):
+    def __init__(self, vr: VotingRegressor):
         self.models = []
 
         for model in vr.estimators_:
