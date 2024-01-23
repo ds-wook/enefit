@@ -9,21 +9,18 @@ import lightgbm as lgb
 from omegaconf import DictConfig
 from sklearn.ensemble import VotingRegressor
 
-from data import Warehouse
+from data import DataStorage
 from features import FeatureEngineer
 from model import fit_model
-
-# Load data
-store = Warehouse()
-feat_gen = FeatureEngineer(data=store)
 
 
 @hydra.main(config_path="../config/", config_name="train")
 def _main(cfg: DictConfig):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
-
-        df_train = feat_gen.generate_features(store.df_data, True)
+        data_storage = DataStorage()
+        feat_gen = FeatureEngineer(data=data_storage)
+        df_train = feat_gen.generate_features(data_storage.df_data, True)
         df_train = df_train[df_train["target"].notnull()]
 
         # dropping column

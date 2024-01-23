@@ -201,8 +201,8 @@ class FeatureEngineer:
         cols_for_stats = [f"target_{hours_lag}h" for hours_lag in hours_list[:4]]
 
         df_features = df_features.with_columns(
-            df_features.select(cols_for_stats).mean(axis=1).alias(f"target_mean"),
-            df_features.select(cols_for_stats).transpose().std().transpose().to_series().alias(f"target_std"),
+            df_features.select(cols_for_stats).mean(axis=1).alias("target_mean"),
+            df_features.select(cols_for_stats).transpose().std().transpose().to_series().alias("target_std"),
         )
 
         for target_prefix, lag_nominator, lag_denomonator in [
