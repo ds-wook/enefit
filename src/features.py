@@ -241,6 +241,7 @@ class FeatureEngineer:
         ]
 
         if y is not None:
+            print(df_features)
             df_features = pd.concat([df_features.to_pandas(), y.to_pandas()], axis=1)
         else:
             print(df_features)
