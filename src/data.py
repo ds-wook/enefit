@@ -12,19 +12,13 @@ class DataStorage:
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
         self.df_data = pl.read_csv(
-            Path(self.cfg.data.root) / "train.csv",
-            columns=self.cfg.data.data_cols,
-            try_parse_dates=True,
+            Path(self.cfg.data.root) / "train.csv", columns=self.cfg.data.data_cols, try_parse_dates=True
         )
         self.df_client = pl.read_csv(
-            Path(self.cfg.data.root) / "client.csv",
-            columns=self.cfg.data.client_cols,
-            try_parse_dates=True,
+            Path(self.cfg.data.root) / "client.csv", columns=self.cfg.data.client_cols, try_parse_dates=True
         )
         self.df_gas_prices = pl.read_csv(
-            Path(self.cfg.data.root) / "gas_prices.csv",
-            columns=self.cfg.data.gas_prices_cols,
-            try_parse_dates=True,
+            Path(self.cfg.data.root) / "gas_prices.csv", columns=self.cfg.data.gas_prices_cols, try_parse_dates=True
         )
         self.df_electricity_prices = pl.read_csv(
             Path(self.cfg.data.root) / "electricity_prices.csv",
