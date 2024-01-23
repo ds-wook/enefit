@@ -10,44 +10,43 @@ warnings.filterwarnings("ignore")
 
 class DataStorage:
     def __init__(self, cfg: DictConfig):
-        self.cfg = cfg
         self.df_data = pl.read_csv(
-            Path(self.cfg.data.root) / "train.csv",
-            columns=self.data.data_cols,
+            Path(cfg.data.root) / "train.csv",
+            columns=cfg.data.data_cols,
             try_parse_dates=True,
         )
         self.df_client = pl.read_csv(
-            Path(self.cfg.data.root) / "client.csv",
-            columns=self.data.client_cols,
+            Path(cfg.data.root) / "client.csv",
+            columns=cfg.data.client_cols,
             try_parse_dates=True,
         )
         self.df_gas_prices = pl.read_csv(
-            Path(self.cfg.data.root) / "gas_prices.csv",
-            columns=self.data.gas_prices_cols,
+            Path(cfg.data.root) / "gas_prices.csv",
+            columns=cfg.data.gas_prices_cols,
             try_parse_dates=True,
         )
         self.df_electricity_prices = pl.read_csv(
-            Path(self.cfg.data.root) / "electricity_prices.csv",
-            columns=self.data.electricity_prices_cols,
+            Path(cfg.data.root) / "electricity_prices.csv",
+            columns=cfg.data.electricity_prices_cols,
             try_parse_dates=True,
         )
         self.df_forecast_weather = pl.read_csv(
-            Path(self.cfg.data.root) / "forecast_weather.csv",
-            columns=self.data.forecast_weather_cols,
+            Path(cfg.data.root) / "forecast_weather.csv",
+            columns=cfg.data.forecast_weather_cols,
             try_parse_dates=True,
         )
         self.df_historical_weather = pl.read_csv(
-            Path(self.cfg.data.root) / "historical_weather.csv",
-            columns=self.data.historical_weather_cols,
+            Path(cfg.data.root) / "historical_weather.csv",
+            columns=cfg.data.historical_weather_cols,
             try_parse_dates=True,
         )
         self.df_weather_station_to_county_mapping = pl.read_csv(
-            Path(self.cfg.data.root) / "weather_station_to_county_mapping.csv",
-            columns=self.data.location_cols,
+            Path(cfg.data.root) / "weather_station_to_county_mapping.csv",
+            columns=cfg.data.location_cols,
             try_parse_dates=True,
         )
         self.df_data = self.df_data.filter(pl.col("datetime") >= pd.to_datetime("2022-01-01"))
-        self.df_target = self.df_data.select(self.data.target_cols)
+        self.df_target = self.df_data.select(cfg.data.target_cols)
 
         self.schema_data = self.df_data.schema
         self.schema_client = self.df_client.schema
