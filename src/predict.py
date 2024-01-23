@@ -74,8 +74,8 @@ def _main(cfg: DictConfig):
         df_test_feats = feat_gen.generate_features(df_test, False)
         df_test_feats.drop(columns=["date", "literal"], inplace=True)
 
-        model_consumption = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_consumption}.pkl")
-        model_production = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_production}.pkl")
+        model_consumption = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_consumption}")
+        model_production = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_production}")
 
         preds = predict_model(df_test_feats, 48, model_consumption, model_production)
 

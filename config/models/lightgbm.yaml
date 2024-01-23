@@ -15,5 +15,5 @@ results: 5fold-retention-lightgbm
 early_stopping_rounds: 100
 num_boost_round: 30000
 verbose_eval: 250
-model_consuption: model_consumption
-model_production: model_production
+model_consuption: model_consumption.pkl
+model_production: model_production.pkl
