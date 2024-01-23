@@ -103,5 +103,5 @@ class DataStorage:
 
     def preprocess_test(self, df_test):
         df_test = df_test.rename(columns={"prediction_datetime": "datetime"})
-        df_test = pl.from_pandas(df_test[self.cfg.data_cols[1:]], schema_overrides=self.schema_data)
+        df_test = pl.from_pandas(df_test[self.cfg.data.data_cols[1:]], schema_overrides=self.schema_data)
         return df_test
