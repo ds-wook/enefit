@@ -34,7 +34,7 @@ def _main(cfg: DictConfig):
                     f"clgb_{i}",
                     lgb.LGBMRegressor(**cfg.models.params, random_state=i),
                 )
-                for i in range(12)
+                for i in range(15)
             ],
             verbose=True,
         )
@@ -45,7 +45,7 @@ def _main(cfg: DictConfig):
                     f"plgb_{i}",
                     lgb.LGBMRegressor(**cfg.models.params, random_state=i),
                 )
-                for i in range(12)
+                for i in range(15)
             ],
             verbose=True,
         )
