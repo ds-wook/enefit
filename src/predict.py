@@ -1,12 +1,13 @@
+import os
 from pathlib import Path
 
 import hydra
 import joblib
 import numpy as np
 import pandas as pd
-from catboost import CatBoostRegressor
-from lightgbm import LGBMRegressor
+from cuml import ForestInference
 from omegaconf import DictConfig
+from sklearn.ensemble import VotingRegressor
 
 from data import DataStorage
 from features import FeatureEngineer
@@ -17,11 +18,20 @@ try:
 except ModuleNotFoundError:
     raise ModuleNotFoundError("Please install enefit package from")
 
-Model = list[LGBMRegressor | CatBoostRegressor]
+
+class GPUVoting:
+    def __init__(self, vr):
+        self.models = []
+
+        for model in vr.estimators_:
+            model.booster_.save_model("tmp.txt")
+            model = ForestInference.load("tmp.txt", model_type="lightgbm")
+            os.remove("tmp.txt")
+            self.models.append(model)
 
 
 def predict_model(
-    df_features: pd.DataFrame, hours_lag: int, model_consumption: Model, model_production: Model
+    df_features: pd.DataFrame, hours_lag: int, model_consumption: VotingRegressor, model_production: VotingRegressor
 ) -> np.ndarray:
     predictions = np.zeros(len(df_features))
 
@@ -46,6 +56,10 @@ def predict_model(
 def _main(cfg: DictConfig):
     env = enefit.make_env()
     iter_test = env.iter_test()
+    model_consumption = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_consumption}")
+    model_consumption = GPUVoting(model_consumption)
+    model_production = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_production}")
+    model_production = GPUVoting(model_production)
 
     for (
         df_test,
@@ -73,9 +87,6 @@ def _main(cfg: DictConfig):
         df_test = data_storage.preprocess_test(df_test)
         df_test_feats = feat_gen.generate_features(df_test, False)
         df_test_feats.drop(columns=["date", "literal"], inplace=True)
-
-        model_consumption = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_consumption}")
-        model_production = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_production}")
 
         preds = predict_model(df_test_feats, 48, model_consumption, model_production)
 
