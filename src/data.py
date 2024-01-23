@@ -65,24 +65,24 @@ class DataStorage:
         df_new_historical_weather,
         df_new_target,
     ):
-        df_new_client = pl.from_pandas(df_new_client[self.cfg.client_cols], schema_overrides=self.schema_client)
+        df_new_client = pl.from_pandas(df_new_client[self.cfg.data.client_cols], schema_overrides=self.schema_client)
         df_new_gas_prices = pl.from_pandas(
-            df_new_gas_prices[self.cfg.gas_prices_cols],
+            df_new_gas_prices[self.cfg.data.gas_prices_cols],
             schema_overrides=self.schema_gas_prices,
         )
         df_new_electricity_prices = pl.from_pandas(
-            df_new_electricity_prices[self.cfg.electricity_prices_cols],
+            df_new_electricity_prices[self.cfg.data.electricity_prices_cols],
             schema_overrides=self.schema_electricity_prices,
         )
         df_new_forecast_weather = pl.from_pandas(
-            df_new_forecast_weather[self.cfg.forecast_weather_cols],
+            df_new_forecast_weather[self.cfg.data.forecast_weather_cols],
             schema_overrides=self.schema_forecast_weather,
         )
         df_new_historical_weather = pl.from_pandas(
-            df_new_historical_weather[self.cfg.historical_weather_cols],
+            df_new_historical_weather[self.cfg.data.historical_weather_cols],
             schema_overrides=self.schema_historical_weather,
         )
-        df_new_target = pl.from_pandas(df_new_target[self.cfg.target_cols], schema_overrides=self.schema_target)
+        df_new_target = pl.from_pandas(df_new_target[self.cfg.data.target_cols], schema_overrides=self.schema_target)
 
         self.df_client = pl.concat([self.df_client, df_new_client]).unique(
             ["date", "county", "is_business", "product_type"]
