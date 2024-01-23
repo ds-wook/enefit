@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore")
 
 
 class DataStorage:
-    root = "input/predict-energy-behavior-of-prosumers"
+    root = "kaggle/input/predict-energy-behavior-of-prosumers"
 
     data_cols = [
         "target",
