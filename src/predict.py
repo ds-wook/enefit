@@ -8,7 +8,8 @@ from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from omegaconf import DictConfig
 
-from train import feat_gen, store
+from data import DataStorage
+from features import FeatureEngineer
 
 try:
     import enefit
@@ -55,27 +56,32 @@ def _main(cfg: DictConfig):
         df_new_gas_prices,
         df_sample_prediction,
     ) in iter_test:
-        store.update_data(
-            df_client_new=df_new_client,
-            df_gas_price_new=df_new_gas_prices,
-            df_elec_price_new=df_new_electricity_prices,
-            df_forecast_new=df_new_forecast_weather,
-            df_hist_weather_new=df_new_historical_weather,
-            df_target_new=df_new_target,
+        data_storage = DataStorage()
+        feat_gen = FeatureEngineer(data=data_storage)
+
+        data_storage.update_with_new_data(
+            df_new_client=df_new_client,
+            df_new_gas_prices=df_new_gas_prices,
+            df_new_electricity_prices=df_new_electricity_prices,
+            df_new_forecast_weather=df_new_forecast_weather,
+            df_new_historical_weather=df_new_historical_weather,
+            df_new_target=df_new_target,
         )
-        df_test = store.preprocess_test(df_test)
+
+        # separately generate test features for both models
+        df_test = data_storage.preprocess_test(df_test)
+
+        # df_test_features = features_generator.generate_features(df_test)
 
         df_test_feats = feat_gen.generate_features(df_test, False)
 
-        df_test_feats.drop(columns=["date"], inplace=True)
+        # print(set(df_test_features.columns) - set(df_test_feats.columns))
+        # print(set(df_test_feats.columns) - set(df_test_features.columns))
+        # print("------")
 
-        if "literal" in df_test_feats.columns:
-            df_test_feats.drop(columns=["literal"], inplace=True)
+        df_test_feats.drop(columns=["date", "literal"], inplace=True)
 
-        m1 = joblib.load(Path(cfg.models.path) / "model_consumption.pkl")
-        m2 = joblib.load(Path(cfg.models.path) / "model_production.pkl")
-
-        df_sample_prediction["target"] = predict_model(df_test_feats, 48, m1, m2)
+        df_sample_prediction["target"] = 0
 
         env.predict(df_sample_prediction)
 

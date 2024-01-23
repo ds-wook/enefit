@@ -65,7 +65,7 @@ class FeatureEngineer:
         df_forecast_weather = (
             df_forecast_weather.rename({"forecast_datetime": "datetime"})
             .filter((pl.col("hours_ahead") >= 22) & pl.col("hours_ahead") <= 45)
-            .drop("hours_ahead")
+            #             .drop("hours_ahead")
             .with_columns(
                 pl.col("latitude").cast(pl.datatypes.Float32),
                 pl.col("longitude").cast(pl.datatypes.Float32),
@@ -201,8 +201,8 @@ class FeatureEngineer:
         cols_for_stats = [f"target_{hours_lag}h" for hours_lag in hours_list[:4]]
 
         df_features = df_features.with_columns(
-            df_features.select(cols_for_stats).mean(axis=1).alias("target_mean"),
-            df_features.select(cols_for_stats).transpose().std().transpose().to_series().alias("target_std"),
+            df_features.select(cols_for_stats).mean(axis=1).alias(f"target_mean"),
+            df_features.select(cols_for_stats).transpose().std().transpose().to_series().alias(f"target_std"),
         )
 
         for target_prefix, lag_nominator, lag_denomonator in [
@@ -243,8 +243,7 @@ class FeatureEngineer:
         if y is not None:
             df_features = pd.concat([df_features.to_pandas(), y.to_pandas()], axis=1)
         else:
-            print(df_features.head())
-            print(type(df_features))
+            print(df_features)
             df_features = df_features.to_pandas()
 
         df_features = df_features.set_index("row_id")
