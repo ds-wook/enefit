@@ -42,7 +42,7 @@ def predict_model(
 
     predictions[mask.values] = np.clip(
         df_features[mask][f"target_{hours_lag}h"].fillna(0).values
-        + np.mean([model_consumption.predict(df_features[mask]) for model_consumption in model_consumptions], axis=0),
+        + np.median([model_consumption.predict(df_features[mask]) for model_consumption in model_consumptions], axis=0),
         0,
         np.inf,
     )
@@ -50,7 +50,7 @@ def predict_model(
     mask = df_features["is_consumption"] == 0
     predictions[mask.values] = np.clip(
         df_features[mask][f"target_{hours_lag}h"].fillna(0).values
-        + np.mean([model_production.predict(df_features[mask]) for model_production in model_productions], axis=0),
+        + np.median([model_production.predict(df_features[mask]) for model_production in model_productions], axis=0),
         0,
         np.inf,
     )
