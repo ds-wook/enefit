@@ -1,15 +1,12 @@
 import gc
 
 import pandas as pd
-from catboost import CatBoostRegressor
-from lightgbm import LGBMRegressor
-
-Model = list[LGBMRegressor | CatBoostRegressor]
+from sklearn.ensemble import VotingRegressor
 
 
 def fit_model(
-    train_feats: pd.DataFrame, hours_lag: int, model_consumption: Model, model_production: Model
-) -> tuple[Model, Model]:
+    train_feats: pd.DataFrame, hours_lag: int, model_consumption: VotingRegressor, model_production: VotingRegressor
+) -> tuple[VotingRegressor]:
     mask = train_feats["is_consumption"] == 1
     model_consumption.fit(
         X=train_feats[mask].drop(columns=["target"]),

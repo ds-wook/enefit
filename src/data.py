@@ -1,119 +1,53 @@
-import os
 import warnings
+from pathlib import Path
 
 import pandas as pd
 import polars as pl
+from omegaconf import DictConfig
 
 warnings.filterwarnings("ignore")
 
 
 class DataStorage:
-    root = "/kaggle/input/predict-energy-behavior-of-prosumers"
-
-    data_cols = [
-        "target",
-        "county",
-        "is_business",
-        "product_type",
-        "is_consumption",
-        "datetime",
-        "row_id",
-    ]
-    client_cols = [
-        "product_type",
-        "county",
-        "eic_count",
-        "installed_capacity",
-        "is_business",
-        "date",
-    ]
-    gas_prices_cols = ["forecast_date", "lowest_price_per_mwh", "highest_price_per_mwh"]
-    electricity_prices_cols = ["forecast_date", "euros_per_mwh"]
-    forecast_weather_cols = [
-        "latitude",
-        "longitude",
-        "hours_ahead",
-        "temperature",
-        "dewpoint",
-        "cloudcover_high",
-        "cloudcover_low",
-        "cloudcover_mid",
-        "cloudcover_total",
-        "10_metre_u_wind_component",
-        "10_metre_v_wind_component",
-        "forecast_datetime",
-        "direct_solar_radiation",
-        "surface_solar_radiation_downwards",
-        "snowfall",
-        "total_precipitation",
-    ]
-    historical_weather_cols = [
-        "datetime",
-        "temperature",
-        "dewpoint",
-        "rain",
-        "snowfall",
-        "surface_pressure",
-        "cloudcover_total",
-        "cloudcover_low",
-        "cloudcover_mid",
-        "cloudcover_high",
-        "windspeed_10m",
-        "winddirection_10m",
-        "shortwave_radiation",
-        "direct_solar_radiation",
-        "diffuse_radiation",
-        "latitude",
-        "longitude",
-    ]
-    location_cols = ["longitude", "latitude", "county"]
-    target_cols = [
-        "target",
-        "county",
-        "is_business",
-        "product_type",
-        "is_consumption",
-        "datetime",
-    ]
-
-    def __init__(self):
+    def __init__(self, cfg: DictConfig):
+        self.cfg = cfg
         self.df_data = pl.read_csv(
-            os.path.join(self.root, "train.csv"),
-            columns=self.data_cols,
+            Path(self.cfg.data.root) / "train.csv",
+            columns=self.data.data_cols,
             try_parse_dates=True,
         )
         self.df_client = pl.read_csv(
-            os.path.join(self.root, "client.csv"),
-            columns=self.client_cols,
+            Path(self.cfg.data.root) / "client.csv",
+            columns=self.data.client_cols,
             try_parse_dates=True,
         )
         self.df_gas_prices = pl.read_csv(
-            os.path.join(self.root, "gas_prices.csv"),
-            columns=self.gas_prices_cols,
+            Path(self.cfg.data.root) / "gas_prices.csv",
+            columns=self.data.gas_prices_cols,
             try_parse_dates=True,
         )
         self.df_electricity_prices = pl.read_csv(
-            os.path.join(self.root, "electricity_prices.csv"),
-            columns=self.electricity_prices_cols,
+            Path(self.cfg.data.root) / "electricity_prices.csv",
+            columns=self.data.electricity_prices_cols,
             try_parse_dates=True,
         )
         self.df_forecast_weather = pl.read_csv(
-            os.path.join(self.root, "forecast_weather.csv"),
-            columns=self.forecast_weather_cols,
+            Path(self.cfg.data.root) / "forecast_weather.csv",
+            columns=self.data.forecast_weather_cols,
             try_parse_dates=True,
         )
         self.df_historical_weather = pl.read_csv(
-            os.path.join(self.root, "historical_weather.csv"),
-            columns=self.historical_weather_cols,
+            Path(self.cfg.data.root) / "historical_weather.csv",
+            columns=self.data.historical_weather_cols,
             try_parse_dates=True,
         )
         self.df_weather_station_to_county_mapping = pl.read_csv(
-            os.path.join(self.root, "weather_station_to_county_mapping.csv"),
-            columns=self.location_cols,
+            Path(self.cfg.data.root) / "weather_station_to_county_mapping.csv",
+            columns=self.data.location_cols,
             try_parse_dates=True,
         )
         self.df_data = self.df_data.filter(pl.col("datetime") >= pd.to_datetime("2022-01-01"))
-        self.df_target = self.df_data.select(self.target_cols)
+        self.df_target = self.df_data.select(self.data.target_cols)
 
         self.schema_data = self.df_data.schema
         self.schema_client = self.df_client.schema

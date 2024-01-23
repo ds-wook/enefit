@@ -17,8 +17,6 @@ try:
 except ModuleNotFoundError:
     raise ModuleNotFoundError("Please install enefit package from")
 
-env = enefit.make_env()
-iter_test = env.iter_test()
 Model = list[LGBMRegressor | CatBoostRegressor]
 
 
@@ -46,6 +44,9 @@ def predict_model(
 
 @hydra.main(config_path="../config/", config_name="predict")
 def _main(cfg: DictConfig):
+    env = enefit.make_env()
+    iter_test = env.iter_test()
+
     for (
         df_test,
         df_new_target,
@@ -56,7 +57,7 @@ def _main(cfg: DictConfig):
         df_new_gas_prices,
         df_sample_prediction,
     ) in iter_test:
-        data_storage = DataStorage()
+        data_storage = DataStorage(cfg)
         feat_gen = FeatureEngineer(data=data_storage)
 
         data_storage.update_with_new_data(
@@ -70,18 +71,15 @@ def _main(cfg: DictConfig):
 
         # separately generate test features for both models
         df_test = data_storage.preprocess_test(df_test)
-
-        # df_test_features = features_generator.generate_features(df_test)
-
         df_test_feats = feat_gen.generate_features(df_test, False)
-
-        # print(set(df_test_features.columns) - set(df_test_feats.columns))
-        # print(set(df_test_feats.columns) - set(df_test_features.columns))
-        # print("------")
-
         df_test_feats.drop(columns=["date", "literal"], inplace=True)
 
-        df_sample_prediction["target"] = 0
+        model_consumption = joblib.load(Path(cfg.models.path) / f"{cfg.models.consumption}.pkl")
+        model_production = joblib.load(Path(cfg.models.path) / f"{cfg.models.production}.pkl")
+
+        preds = predict_model(df_test_feats, 48, model_consumption, model_production)
+
+        df_sample_prediction["target"] = preds
 
         env.predict(df_sample_prediction)
 
