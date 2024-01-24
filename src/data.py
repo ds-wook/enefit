@@ -58,13 +58,13 @@ class DataStorage:
 
     def update_with_new_data(
         self,
-        df_new_client,
-        df_new_gas_prices,
-        df_new_electricity_prices,
-        df_new_forecast_weather,
-        df_new_historical_weather,
-        df_new_target,
-    ):
+        df_new_client: pd.DataFrame,
+        df_new_gas_prices: pd.DataFrame,
+        df_new_electricity_prices: pd.DataFrame,
+        df_new_forecast_weather: pd.DataFrame,
+        df_new_historical_weather: pd.DataFrame,
+        df_new_target: pd.DataFrame,
+    ) -> None:
         df_new_client = pl.from_pandas(df_new_client[self.cfg.data.client_cols], schema_overrides=self.schema_client)
         df_new_gas_prices = pl.from_pandas(
             df_new_gas_prices[self.cfg.data.gas_prices_cols],
@@ -101,7 +101,7 @@ class DataStorage:
             ["datetime", "county", "is_business", "product_type", "is_consumption"]
         )
 
-    def preprocess_test(self, df_test):
+    def preprocess_test(self, df_test: pd.DataFrame) -> pl.DataFrame:
         df_test = df_test.rename(columns={"prediction_datetime": "datetime"})
         df_test = pl.from_pandas(df_test[self.cfg.data.data_cols[1:]], schema_overrides=self.schema_data)
         return df_test

@@ -2,12 +2,14 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
+from data import DataStorage
+
 
 class FeatureEngineer:
-    def __init__(self, data_storage):
+    def __init__(self, data_storage: DataStorage):
         self.data_storage = data_storage
 
-    def _add_general_features(self, df_features):
+    def _add_general_features(self, df_features: pl.DataFrame) -> pl.DataFrame:
         df_features = (
             df_features.with_columns(
                 pl.col("datetime").dt.ordinal_day().alias("dayofyear"),
@@ -35,7 +37,7 @@ class FeatureEngineer:
         )
         return df_features
 
-    def _add_client_features(self, df_features):
+    def _add_client_features(self, df_features: pl.DataFrame) -> pl.DataFrame:
         df_client = self.data_storage.df_client
 
         df_features = df_features.join(
@@ -45,7 +47,7 @@ class FeatureEngineer:
         )
         return df_features
 
-    def _add_forecast_weather_features(self, df_features):
+    def _add_forecast_weather_features(self, df_features: pl.DataFrame) -> pl.DataFrame:
         df_forecast_weather = self.data_storage.df_forecast_weather
         df_weather_station_to_county_mapping = self.data_storage.df_weather_station_to_county_mapping
 
@@ -87,7 +89,7 @@ class FeatureEngineer:
 
         return df_features
 
-    def _add_historical_weather_features(self, df_features):
+    def _add_historical_weather_features(self, df_features: pl.DataFrame) -> pl.DataFrame:
         df_historical_weather = self.data_storage.df_historical_weather
         df_weather_station_to_county_mapping = self.data_storage.df_weather_station_to_county_mapping
 
@@ -139,7 +141,7 @@ class FeatureEngineer:
 
         return df_features
 
-    def _add_target_features(self, df_features):
+    def _add_target_features(self, df_features: pl.DataFrame) -> pl.DataFrame:
         df_target = self.data_storage.df_target
 
         df_target_all_type_sum = (
@@ -169,13 +171,7 @@ class FeatureEngineer:
                 df_target.with_columns(pl.col("datetime") + pl.duration(hours=hours_lag)).rename(
                     {"target": f"target_{hours_lag}h"}
                 ),
-                on=[
-                    "county",
-                    "is_business",
-                    "product_type",
-                    "is_consumption",
-                    "datetime",
-                ],
+                on=["county", "is_business", "product_type", "is_consumption", "datetime"],
                 how="left",
             )
 
@@ -221,22 +217,16 @@ class FeatureEngineer:
 
         return df_features
 
-    def _reduce_memory_usage(self, df_features):
+    def _reduce_memory_usage(self, df_features: pl.DataFrame) -> pl.DataFrame:
         df_features = df_features.with_columns(pl.col(pl.Float64).cast(pl.Float32))
         return df_features
 
-    def _drop_columns(self, df_features):
+    def _drop_columns(self, df_features: pl.DataFrame) -> pl.DataFrame:
         df_features = df_features.drop("date", "datetime", "hour", "dayofyear")
         return df_features
 
-    def _to_pandas(self, df_features, y):
-        cat_cols = [
-            "county",
-            "is_business",
-            "product_type",
-            "is_consumption",
-            "segment",
-        ]
+    def _to_pandas(self, df_features: pl.DataFrame, y: pl.Series) -> pd.DataFrame:
+        cat_cols = ["county", "is_business", "product_type", "is_consumption", "segment"]
 
         if y is not None:
             df_features = pd.concat([df_features.to_pandas(), y.to_pandas()], axis=1)
@@ -248,7 +238,7 @@ class FeatureEngineer:
 
         return df_features
 
-    def generate_features(self, df_prediction_items):
+    def generate_features(self, df_prediction_items: pl.DataFrame) -> pd.DataFrame:
         if "target" in df_prediction_items.columns:
             df_prediction_items, y = (
                 df_prediction_items.drop("target"),
