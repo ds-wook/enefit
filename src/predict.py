@@ -35,6 +35,12 @@ def predict_model(
 def _main(cfg: DictConfig):
     env = enefit.make_env()
     iter_test = env.iter_test()
+
+    data_storage = DataStorage(cfg)
+    feat_gen = FeatureEngineer(data_storage=data_storage)
+    df_train = feat_gen.generate_features(data_storage.df_data)
+    df_train = df_train[df_train["target"].notnull()]
+
     model_consumption = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_consumption}")
     model_production = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_production}")
 
@@ -48,9 +54,6 @@ def _main(cfg: DictConfig):
         df_new_gas_prices,
         df_sample_prediction,
     ) in iter_test:
-        data_storage = DataStorage(cfg)
-        feat_gen = FeatureEngineer(data_storage=data_storage)
-
         data_storage.update_with_new_data(
             df_new_client=df_new_client,
             df_new_gas_prices=df_new_gas_prices,

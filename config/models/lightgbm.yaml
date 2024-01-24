@@ -11,7 +11,6 @@ params:
   min_child_samples: 50
 path: res/models/
 name: lightgbm
-results: 5fold-retention-lightgbm
 early_stopping_rounds: 100
 num_boost_round: 30000
 verbose_eval: 250
