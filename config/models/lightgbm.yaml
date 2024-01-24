@@ -1,19 +1,19 @@
 params:
-  objective: regression_l1
+  objective: tweedie
   n_estimators: 3000
-  learning_rate: 0.05
-  colsample_bytree: 0.8
-  colsample_bynode: 0.5
-  reg_alpha: 3.4
-  reg_lambda: 1.4
-  max_depth: 15
-  num_leaves: 490
-  min_child_samples: 48
+  learning_rate: 0.07
+  colsample_bytree: 0.9
+  colsample_bynode: 0.6
+  reg_alpha: 3.5
+  reg_lambda: 1.5
+  max_depth: 20
+  num_leaves: 600
+  min_child_samples: 50
 path: res/models/
 name: lightgbm
 results: 5fold-retention-lightgbm
 early_stopping_rounds: 100
 num_boost_round: 30000
 verbose_eval: 250
-model_consumption: model_consumption.pkl
-model_production: model_production.pkl
+model_consumption: model_consumption_tweedie.pkl
+model_production: model_production_tweedie.pkl

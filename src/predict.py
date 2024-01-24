@@ -18,23 +18,15 @@ except ModuleNotFoundError:
 
 
 def predict_model(
-    df_features: pd.DataFrame, hours_lag: int, model_consumption: VotingRegressor, model_production: VotingRegressor
+    df_features: pd.DataFrame, model_consumption: VotingRegressor, model_production: VotingRegressor
 ) -> np.ndarray:
     predictions = np.zeros(len(df_features))
 
     mask = df_features["is_consumption"] == 1
-    predictions[mask.values] = np.clip(
-        df_features[mask][f"target_{hours_lag}h"].fillna(0).values + model_consumption.predict(df_features[mask]),
-        0,
-        np.inf,
-    )
+    predictions[mask.values] = model_consumption.predict(df_features[mask]).clip(0)
 
     mask = df_features["is_consumption"] == 0
-    predictions[mask.values] = np.clip(
-        df_features[mask][f"target_{hours_lag}h"].fillna(0).values + model_production.predict(df_features[mask]),
-        0,
-        np.inf,
-    )
+    predictions[mask.values] = model_production.predict(df_features[mask]).clip(0)
 
     return predictions
 
@@ -57,7 +49,7 @@ def _main(cfg: DictConfig):
         df_sample_prediction,
     ) in iter_test:
         data_storage = DataStorage(cfg)
-        feat_gen = FeatureEngineer(data=data_storage)
+        feat_gen = FeatureEngineer(data_storage=data_storage)
 
         data_storage.update_with_new_data(
             df_new_client=df_new_client,
@@ -70,10 +62,9 @@ def _main(cfg: DictConfig):
 
         # separately generate test features for both models
         df_test = data_storage.preprocess_test(df_test)
-        df_test_feats = feat_gen.generate_features(df_test, False)
-        df_test_feats.drop(columns=["date", "literal"], inplace=True)
+        df_test_feats = feat_gen.generate_features(df_test)
 
-        preds = predict_model(df_test_feats, 48, model_consumption, model_production)
+        preds = predict_model(df_test_feats, model_consumption, model_production)
 
         df_sample_prediction["target"] = preds
 

@@ -1,17 +1,13 @@
-import datetime
-
-import holidays
 import numpy as np
 import pandas as pd
 import polars as pl
 
 
 class FeatureEngineer:
-    def __init__(self, data):
-        self.data = data
-        self.estonian_holidays = list(holidays.country_holidays("EE", years=range(2021, 2026)).keys())
+    def __init__(self, data_storage):
+        self.data_storage = data_storage
 
-    def _general_features(self, df_features):
+    def _add_general_features(self, df_features):
         df_features = (
             df_features.with_columns(
                 pl.col("datetime").dt.ordinal_day().alias("dayofyear"),
@@ -39,8 +35,8 @@ class FeatureEngineer:
         )
         return df_features
 
-    def _client_features(self, df_features):
-        df_client = self.data.df_client
+    def _add_client_features(self, df_features):
+        df_client = self.data_storage.df_client
 
         df_features = df_features.join(
             df_client.with_columns((pl.col("date") + pl.duration(days=2)).cast(pl.Date)),
@@ -49,23 +45,14 @@ class FeatureEngineer:
         )
         return df_features
 
-    def is_country_holiday(self, row):
-        return datetime.date(row["year"], row["month"], row["day"]) in self.estonian_holidays
-
-    def _holidays_features(self, df_features):
-        df_features = df_features.with_columns(
-            pl.struct(["year", "month", "day"]).apply(self.is_country_holiday).alias("is_country_holiday")
-        )
-        return df_features
-
-    def _forecast_weather_features(self, df_features):
-        df_forecast_weather = self.data.df_forecast_weather
-        df_weather_station_to_county_mapping = self.data.df_weather_station_to_county_mapping
+    def _add_forecast_weather_features(self, df_features):
+        df_forecast_weather = self.data_storage.df_forecast_weather
+        df_weather_station_to_county_mapping = self.data_storage.df_weather_station_to_county_mapping
 
         df_forecast_weather = (
             df_forecast_weather.rename({"forecast_datetime": "datetime"})
             .filter((pl.col("hours_ahead") >= 22) & pl.col("hours_ahead") <= 45)
-            #             .drop("hours_ahead")
+            .drop("hours_ahead")
             .with_columns(
                 pl.col("latitude").cast(pl.datatypes.Float32),
                 pl.col("longitude").cast(pl.datatypes.Float32),
@@ -100,9 +87,9 @@ class FeatureEngineer:
 
         return df_features
 
-    def _historical_weather_features(self, df_features):
-        df_historical_weather = self.data.df_historical_weather
-        df_weather_station_to_county_mapping = self.data.df_weather_station_to_county_mapping
+    def _add_historical_weather_features(self, df_features):
+        df_historical_weather = self.data_storage.df_historical_weather
+        df_weather_station_to_county_mapping = self.data_storage.df_weather_station_to_county_mapping
 
         df_historical_weather = (
             df_historical_weather.with_columns(
@@ -152,8 +139,8 @@ class FeatureEngineer:
 
         return df_features
 
-    def _target_features(self, df_features):
-        df_target = self.data.df_target
+    def _add_target_features(self, df_features):
+        df_target = self.data_storage.df_target
 
         df_target_all_type_sum = (
             df_target.group_by(["datetime", "county", "is_business", "is_consumption"]).sum().drop("product_type")
@@ -163,9 +150,21 @@ class FeatureEngineer:
             df_target.group_by(["datetime", "is_business", "is_consumption"]).sum().drop("product_type", "county")
         )
 
-        hours_list = [i * 24 for i in range(2, 15)]
-
-        for hours_lag in hours_list:
+        for hours_lag in [
+            2 * 24,
+            3 * 24,
+            4 * 24,
+            5 * 24,
+            6 * 24,
+            7 * 24,
+            8 * 24,
+            9 * 24,
+            10 * 24,
+            11 * 24,
+            12 * 24,
+            13 * 24,
+            14 * 24,
+        ]:
             df_features = df_features.join(
                 df_target.with_columns(pl.col("datetime") + pl.duration(hours=hours_lag)).rename(
                     {"target": f"target_{hours_lag}h"}
@@ -198,8 +197,7 @@ class FeatureEngineer:
                 suffix=f"_all_county_type_sum_{hours_lag}h",
             )
 
-        cols_for_stats = [f"target_{hours_lag}h" for hours_lag in hours_list[:4]]
-
+        cols_for_stats = [f"target_{hours_lag}h" for hours_lag in [2 * 24, 3 * 24, 4 * 24, 5 * 24]]
         df_features = df_features.with_columns(
             df_features.select(cols_for_stats).mean(axis=1).alias("target_mean"),
             df_features.select(cols_for_stats).transpose().std().transpose().to_series().alias("target_std"),
@@ -228,7 +226,7 @@ class FeatureEngineer:
         return df_features
 
     def _drop_columns(self, df_features):
-        df_features = df_features.drop("datetime", "hour", "dayofyear")
+        df_features = df_features.drop("date", "datetime", "hour", "dayofyear")
         return df_features
 
     def _to_pandas(self, df_features, y):
@@ -250,27 +248,7 @@ class FeatureEngineer:
 
         return df_features
 
-    # added some new features here
-    def _additional_features(self, df):
-        for col in [
-            "temperature",
-            "dewpoint",
-            "10_metre_u_wind_component",
-            "10_metre_v_wind_component",
-        ]:
-            for window in [1]:
-                df[f"{col}_diff_{window}"] = df.groupby(["county", "is_consumption", "product_type", "is_business"])[
-                    col
-                ].diff(window)
-        return df
-
-    def _log_outliers(self, df):
-        l1 = ["installed_capacity", "target_mean", "target_std"]
-        for i in l1:
-            df = df.with_columns([(f"log_{i}", pl.when(df[i] != 0).then(np.log(pl.col(i))).otherwise(0))])
-        return df
-
-    def generate_features(self, df_prediction_items, isTrain):
+    def generate_features(self, df_prediction_items):
         if "target" in df_prediction_items.columns:
             df_prediction_items, y = (
                 df_prediction_items.drop("target"),
@@ -284,19 +262,16 @@ class FeatureEngineer:
         )
 
         for add_features in [
-            self._general_features,
-            self._client_features,
-            self._forecast_weather_features,
-            self._historical_weather_features,
-            self._target_features,
-            self._holidays_features,
-            self._log_outliers,
+            self._add_general_features,
+            self._add_client_features,
+            self._add_forecast_weather_features,
+            self._add_historical_weather_features,
+            self._add_target_features,
             self._reduce_memory_usage,
             self._drop_columns,
         ]:
             df_features = add_features(df_features)
 
         df_features = self._to_pandas(df_features, y)
-        df_features = self._additional_features(df_features)
 
         return df_features

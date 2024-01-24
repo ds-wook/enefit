@@ -19,13 +19,9 @@ def _main(cfg: DictConfig):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
         data_storage = DataStorage(cfg)
-        feat_gen = FeatureEngineer(data=data_storage)
-        df_train = feat_gen.generate_features(data_storage.df_data, True)
+        feat_gen = FeatureEngineer(data_storage=data_storage)
+        df_train = feat_gen.generate_features(data_storage.df_data)
         df_train = df_train[df_train["target"].notnull()]
-
-        # dropping column
-        df_train = df_train.drop(columns=["date"])
-        df_train = df_train.drop(columns=["literal"]) if "literal" in df_train.columns else df_train
 
         # Train model
         model_consumption = VotingRegressor(
@@ -34,7 +30,7 @@ def _main(cfg: DictConfig):
                     f"clgb_{i}",
                     lgb.LGBMRegressor(**cfg.models.params, random_state=i),
                 )
-                for i in range(15)
+                for i in range(12)
             ],
             verbose=True,
         )
@@ -45,12 +41,12 @@ def _main(cfg: DictConfig):
                     f"plgb_{i}",
                     lgb.LGBMRegressor(**cfg.models.params, random_state=i),
                 )
-                for i in range(15)
+                for i in range(12)
             ],
             verbose=True,
         )
 
-        m1, m2 = fit_model(df_train, 48, model_consumption, model_production)
+        m1, m2 = fit_model(df_train, model_consumption, model_production)
 
         joblib.dump(m1, Path(cfg.models.path) / f"{cfg.models.model_consumption}")
         joblib.dump(m2, Path(cfg.models.path) / f"{cfg.models.model_production}")
