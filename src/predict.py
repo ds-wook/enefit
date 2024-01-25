@@ -38,8 +38,8 @@ def _main(cfg: DictConfig):
 
     data_storage = DataStorage(cfg)
     feat_gen = FeatureEngineer(data_storage=data_storage)
-    df_train = feat_gen.generate_features(data_storage.df_data)
-    df_train = df_train[df_train["target"].notnull()]
+    # df_train = feat_gen.generate_features(data_storage.df_data)
+    # df_train = df_train[df_train["target"].notnull()]
 
     model_consumption = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_consumption}")
     model_production = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_production}")
