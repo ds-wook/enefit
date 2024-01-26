@@ -48,8 +48,8 @@ def _main(cfg: DictConfig):
 
         model_consumption, model_production = fit_model(df_train, model_consumption, model_production)
 
-        joblib.dump(model_consumption, Path(cfg.models.path) / f"{cfg.models.model_consumption}")
-        joblib.dump(model_production, Path(cfg.models.path) / f"{cfg.models.model_production}")
+        joblib.dump(model_consumption, Path(cfg.models.path) / f"{cfg.models.model_consumption_diff}")
+        joblib.dump(model_production, Path(cfg.models.path) / f"{cfg.models.model_production_diff}")
 
 
 if __name__ == "__main__":

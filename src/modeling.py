@@ -8,13 +8,12 @@ def fit_model(
     mask = train_feats["is_consumption"] == 1
     model_consumption.fit(
         X=train_feats[mask].drop(columns=["target"]),
-        y=train_feats[mask]["target"],
+        y=train_feats[mask]["target"] - train_feats[mask]["target_48h"].fillna(0),
     )
-
     mask = train_feats["is_consumption"] == 0
     model_production.fit(
         X=train_feats[mask].drop(columns=["target"]),
-        y=train_feats[mask]["target"],
+        y=train_feats[mask]["target"] - train_feats[mask]["target_48h"].fillna(0),
     )
 
     return model_consumption, model_production

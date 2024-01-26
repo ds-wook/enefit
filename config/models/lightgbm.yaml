@@ -16,3 +16,5 @@ num_boost_round: 30000
 verbose_eval: 250
 model_consumption: model_consumption.pkl
 model_production: model_production.pkl
+model_consumption_diff: model_consumption_diff.pkl
+model_production_diff: model_production_diff.pkl

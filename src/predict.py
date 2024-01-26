@@ -18,15 +18,28 @@ except ModuleNotFoundError:
 
 
 def predict_model(
-    df_features: pd.DataFrame, model_consumption: VotingRegressor, model_production: VotingRegressor
+    df_features: pd.DataFrame,
+    model_consumption: VotingRegressor,
+    model_consumption_diff: VotingRegressor,
+    model_production: VotingRegressor,
+    model_production_diff: VotingRegressor,
 ) -> np.ndarray:
     predictions = np.zeros(len(df_features))
 
     mask = df_features["is_consumption"] == 1
-    predictions[mask.values] = model_consumption.predict(df_features[mask]).clip(0)
-
+    predictions[mask.values] = np.clip(
+        model_consumption.predict(df_features[mask]) * 0.5
+        + (df_features[mask]["target_48h"].fillna(0).values + model_consumption_diff.predict(df_features[mask])) * 0.5,
+        0,
+        np.inf,
+    )
     mask = df_features["is_consumption"] == 0
-    predictions[mask.values] = model_production.predict(df_features[mask]).clip(0)
+    predictions[mask.values] = np.clip(
+        model_production.predict(df_features[mask]) * 0.5
+        + (df_features[mask]["target_48h"].fillna(0).values + model_production_diff.predict(df_features[mask])) * 0.5,
+        0,
+        np.inf,
+    )
 
     return predictions
 
@@ -43,6 +56,8 @@ def _main(cfg: DictConfig):
 
     model_consumption = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_consumption}")
     model_production = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_production}")
+    model_consumption_diff = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_consumption_diff}")
+    model_production_diff = joblib.load(Path(cfg.models.path) / f"{cfg.models.model_production_diff}")
 
     for (
         df_test,
@@ -67,7 +82,9 @@ def _main(cfg: DictConfig):
         df_test = data_storage.preprocess_test(df_test)
         df_test_feats = feat_gen.generate_features(df_test)
 
-        preds = predict_model(df_test_feats, model_consumption, model_production)
+        preds = predict_model(
+            df_test_feats, model_consumption, model_consumption_diff, model_production, model_production_diff
+        )
 
         df_sample_prediction["target"] = preds
 
