@@ -12,9 +12,8 @@ from features import FeatureEngineer
 
 try:
     import enefit
-
 except ModuleNotFoundError:
-    raise ModuleNotFoundError("Please install enefit package from")
+    pass
 
 
 def predict_model(
